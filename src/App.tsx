@@ -16,6 +16,12 @@ import {
   ListItemIcon,
   Collapse,
   Box,
+  Modal,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { Delete, ExpandMore, ExpandLess } from "@mui/icons-material";
 import { z } from "zod";
@@ -36,7 +42,7 @@ const options: option[] = [
   },
   {
     id: 2,
-    label: "How deal with anxiety",
+    label: "How to deal with anxiety",
     description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
   },
   {
@@ -61,14 +67,33 @@ const options: option[] = [
   },
 ];
 
-const AssetItem: React.FC<{ asset: option }> = ({ asset }) => {
+type AssetItemProps = {
+  asset: option;
+  onDelete: (id: number) => void;
+};
+
+const AssetItem: React.FC<AssetItemProps> = ({
+  asset,
+  onDelete: handleDelete,
+}) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [openDelete, setOpenDelete] = React.useState(false);
+
+  const onDelete = (id: number) => {
+    setOpenDelete(false);
+    handleDelete(id);
+  };
+
   return (
     <>
       <ListItem
         disablePadding
         secondaryAction={
-          <IconButton edge="end" aria-label="delete">
+          <IconButton
+            edge="end"
+            aria-label="delete"
+            onClick={() => setOpenDelete(true)}
+          >
             <Delete />
           </IconButton>
         }
@@ -87,6 +112,18 @@ const AssetItem: React.FC<{ asset: option }> = ({ asset }) => {
           </Typography>
         </Box>
       </Collapse>
+      <Dialog open={openDelete}>
+        <DialogTitle>Delete asset?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            This will remove the asset from the selected program
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDelete(false)}>Canel</Button>
+          <Button onClick={() => onDelete(asset.id)}>Delete</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
@@ -102,6 +139,10 @@ const AssetList: React.FC<React.PropsWithChildren> = ({ children }) => {
 export default function App() {
   const [option, setOption] = React.useState<option | null>(null);
   const [assets, setAssets] = React.useState<option[]>([]);
+
+  const onDeleteAsset = (id: number) => {
+    setAssets(assets.filter((asset) => asset.id !== id));
+  };
 
   const onSubmit = () => {
     // Add validation here
@@ -141,7 +182,7 @@ export default function App() {
           <AssetList>
             {assets.map((asset, i) => (
               <>
-                <AssetItem asset={asset} />{" "}
+                <AssetItem asset={asset} onDelete={onDeleteAsset} />
                 {i !== assets.length - 1 && <Divider />}
               </>
             ))}
