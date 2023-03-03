@@ -16,7 +16,6 @@ import {
   ListItemIcon,
   Collapse,
   Box,
-  Modal,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -25,6 +24,7 @@ import {
 } from "@mui/material";
 import { Delete, ExpandMore, ExpandLess } from "@mui/icons-material";
 import { z } from "zod";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 const optionSchema = z.object({
   id: z.number(),
@@ -105,7 +105,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
           <ListItemText primary={asset.label} />
         </ListItemButton>
       </ListItem>
-      <Collapse in={isOpen} timeout="auto" unmountOnExit>
+      <Collapse in={isOpen} timeout={0} unmountOnExit>
         <Box sx={{ margin: "0.75rem" }}>
           <Typography variant="body1" gutterBottom align="left">
             {asset.description}
@@ -129,15 +129,16 @@ const AssetItem: React.FC<AssetItemProps> = ({
 };
 
 const AssetList: React.FC<React.PropsWithChildren> = ({ children }) => {
+  const [parent, enableAnimations] = useAutoAnimate();
   return (
     <Paper sx={{ width: "100%", marginTop: "0.5rem" }}>
-      <List>{children}</List>
+      <List ref={parent}>{children}</List>
     </Paper>
   );
 };
 
 export default function App() {
-  const [option, setOption] = React.useState<option | null>(null);
+  const [option, setOption] = React.useState<option[]>([]);
   const [assets, setAssets] = React.useState<option[]>([]);
 
   const onDeleteAsset = (id: number) => {
@@ -145,10 +146,8 @@ export default function App() {
   };
 
   const onSubmit = () => {
-    // Add validation here
-    if (option) {
-      setAssets([...assets, option]);
-    }
+    setAssets([...assets, ...option]);
+    setOption([]);
   };
 
   return (
@@ -167,11 +166,13 @@ export default function App() {
           justifyContent="space-around"
         >
           <Autocomplete
+            multiple
             sx={{ width: "100%" }}
             options={options}
             renderInput={(params) => (
-              <TextField {...params} label="Add assignment" />
+              <TextField {...params} label="Add asset" />
             )}
+            value={option}
             onChange={(_, value) => {
               setOption(value);
             }}
